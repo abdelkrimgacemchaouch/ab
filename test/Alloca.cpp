@@ -16,7 +16,7 @@ using namespace std;
 void aloca(Instruction *instruction,BasicBlock *BB,vector<Instruction*> &T1,vector<Instruction*> &T2,vector<Instruction*> &T3,vector<Instruction*> &T4)
   {
    //*******************************************************************************
-   //********************************
+   //********************************aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
    Instruction *I;
    LLVMContext &context = BB->getContext();
    Type* type = Type::getFloatTy(context);
