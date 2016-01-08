@@ -22,9 +22,9 @@ void binop_2load_doubles(Instruction *instruction,BasicBlock *BB,vector<Instruct
   BinaryOperator* binOp = dyn_cast<BinaryOperator>(instruction);
   T1.push_back(binOp);
   index =Searchinst(T2, dyn_cast<LoadInst>(binOp->getOperand(0)));
-	index2=Searchinst(T2, dyn_cast<LoadInst>(binOp->getOperand(1)));
-	binOpcopie = BinaryOperator::Create(binOp->getOpcode() ,T3[index],T3[index2] ,"add");
-	BB->getInstList().push_back(binOpcopie);
+  index2=Searchinst(T2, dyn_cast<LoadInst>(binOp->getOperand(1)));
+  binOpcopie = BinaryOperator::Create(binOp->getOpcode() ,T3[index],T3[index2] ,"add");
+  BB->getInstList().push_back(binOpcopie);
 	T4.push_back(binOpcopie);  
 	}
 //one operand is load the other is constant 
@@ -53,7 +53,7 @@ void binop_load_const_double(Instruction *instruction,BasicBlock *BB,vector<Inst
 	  c= new FPTruncInst  (binOp->getOperand(1), type, "conv");
 	  }  
 	c->insertAfter(instruction);
-	 Value* x1;
+	Value* x1;
 	if(ConstantFP *cc= dyn_cast<ConstantFP>(c->getOperand(0)))
     {
     double a= APFloat(cc->getValueAPF()).convertToDouble ();
