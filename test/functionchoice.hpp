@@ -8,5 +8,5 @@ namespace llvm
 	class Instruction;
 	class BasicBlock;
   }
-extern void CreatChoice(vector<Function*> &T1,vector<Function*> &T2,vector<Function*> &T3,Value* &a,Value* &b,Module &M);
+extern void CreatChoice(vector<Function*> &T1,vector<Function*> &T2,vector<Function*> &T3,GlobalVariable* &a,GlobalVariable* &b,Module &M);
 #endif

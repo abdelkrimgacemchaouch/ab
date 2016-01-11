@@ -63,7 +63,13 @@ namespace {
 //*****************************************creat the way to choice ********************************************************       
       Value *One = ConstantInt::get(Type::getInt32Ty(context), 0);
       Value *Two = ConstantInt::get(Type::getInt32Ty(context), 1);
-      CreatChoice(Funorg,Funclone,Fu,One,Two, M);
+			GlobalVariable *val1=new GlobalVariable(M,Type::getInt32Ty(context),false,GlobalValue::ExternalLinkage,nullptr);
+      val1->setName("a");
+			val1->setInitializer(One);
+			GlobalVariable *val2=new GlobalVariable(M,Type::getInt32Ty(context),false,GlobalValue::ExternalLinkage,nullptr);
+      val2->setName("b");
+      val2->setInitializer(two);     
+			CreatChoice(Funorg,Funclone,Fu,One,Two, M);
       return true;//false si on veut pas de changement
       }
 //****************************************creat the new instruction and filling the function copie***********************************      

@@ -13,7 +13,7 @@
 #include <fstream>
 using namespace llvm;
 using namespace std;
-void CreatChoice(vector<Function*> &T1,vector<Function*> &T2,vector<Function*> &T3,Value* &a,Value* &b,Module &M)
+void CreatChoice(vector<Function*> &T1,vector<Function*> &T2,vector<Function*> &T3,GlobalVariable* &a,GlobalVariable* &b,Module &M)
   {
   //*****************************************************creat function to do choice
   vector<Value*> l,l1;
@@ -29,7 +29,9 @@ void CreatChoice(vector<Function*> &T1,vector<Function*> &T2,vector<Function*> &
     BasicBlock * BB  = BasicBlock::Create(context, "choice",func);
     BasicBlock * BB1 = BasicBlock::Create(context, "or",func);
     BasicBlock * BB2 = BasicBlock::Create(context, "cop",func);
-    Value *CondIn = new ICmpInst(*BB, ICmpInst::ICMP_SLE, a, b, "cond");
+    LoadInst  *aa = new LoadInst(a," ",false,BB);
+    LoadInst  *bb = new LoadInst(b," ",false,BB);
+    Value *CondIn = new ICmpInst(*BB, ICmpInst::ICMP_SLE, aa, bb, "cond");
     BranchInst::Create(BB2,BB1,CondIn,BB);
     for (Function::arg_iterator I = T1[i]->arg_begin(), E = T1[i]->arg_end(); I != E; ++I)
       {
@@ -57,7 +59,7 @@ void CreatChoice(vector<Function*> &T1,vector<Function*> &T2,vector<Function*> &
     ReturnInst::Create(context, new_loa, BB2);
     T3.push_back(func);
     }
-//*******************************************************do the choice******************************************
+//*******************************************************for original function******************************************
   for (int i=0;i<T1.size();i++)
     {
     if(inst_begin(T1[i])!=inst_end(T1[i]))
@@ -72,7 +74,9 @@ void CreatChoice(vector<Function*> &T1,vector<Function*> &T2,vector<Function*> &
         }
        BasicBlock * BB = BasicBlock::Create(context, "blocdechoix",T1[i] ,T1[i]->begin());
        BasicBlock * BB1 = BasicBlock::Create(context, "blocother",T1[i]);
-       Value *CondInst = new ICmpInst(*BB, ICmpInst::ICMP_SLE, a, b, "cond");
+       LoadInst  *aa = new LoadInst(a," ",false,4,BB);
+       LoadInst  *bb = new LoadInst(b," ",false,4,BB);
+       Value *CondInst = new ICmpInst(*BB, ICmpInst::ICMP_SLE, aa, bb, "cond");
        BranchInst::Create(BB1,X[0],CondInst,BB);   
        CallInst *O= CallInst::Create(T3[i], "",BB1);
        Type* ty = T1[i]->getReturnType();
@@ -80,6 +84,21 @@ void CreatChoice(vector<Function*> &T1,vector<Function*> &T2,vector<Function*> &
        StoreInst  *new_store = new StoreInst(O,new_alloca , false,4,BB1);
        LoadInst  *new_load = new LoadInst(new_alloca," ",false,4,BB1);
        ReturnInst::Create(context, new_load, BB1);
+       for (Function::iterator blocdebase = T1[i]->begin(), e = T1[i]->end(); blocdebase != e; ++blocdebase)
+        {
+        const TerminatorInst *TI = blocdebase->getTerminator();      
+        if(TI->getNumSuccessors()==0)
+          {
+          ReturnInst *Oldeterminal=dyn_cast<ReturnInst>(blocdebase->getTerminator());
+          Instruction *Newterminal=ci->clone();
+          Value *t= ConstantInt::get(Type::getInt32Ty(context), 0);
+          Value *e= ConstantInt::get(Type::getInt32Ty(context), 1);
+          StoreInst *st= new StoreInst(t,a,false,blocdebase);
+          StoreInst *st1 =new StoreInst(e,b, false,blocdebase);
+          Oldeterminal->eraseFromParent();
+          Newterminal->insertAfter((st1));      
+          }       
+        }       
        X.clear();
        l.clear();
       } 
@@ -108,10 +127,35 @@ void CreatChoice(vector<Function*> &T1,vector<Function*> &T2,vector<Function*> &
       StoreInst  *new_store = new StoreInst(O,new_alloca , false,4,BB2);
       LoadInst  *new_load = new LoadInst(new_alloca," ",false,4,BB2);
       ReturnInst::Create(context, new_load, BB2);
-      a = ConstantInt::get(Type::getInt32Ty(context), 1);
-      b = ConstantInt::get(Type::getInt32Ty(context), 0);
-      Value *CondI = new ICmpInst(*X[0], ICmpInst::ICMP_SLE, a, b, "cond");
-      BranchInst::Create (BB2,BB1 ,CondI,X[0]);
+      BasicBlock * BB3 = BasicBlock::Create(context, "over",T2[i]);
+      Value *t= ConstantInt::get(Type::getInt32Ty(context), 0);
+      Value *e= ConstantInt::get(Type::getInt32Ty(context), 1);
+      new StoreInst(e,a,false,X[0]);
+      new StoreInst(t,b, false,X[0]);
+      Type* Int1= Type::getInt8PtrTy(context);
+      Type *typpe=Type::getInt32Ty(context);
+      Type* voidd= Type::getVoidTy(context);
+      Function *under_over = cast<Function>(M.getOrInsertFunction ("llvm.x86.sse.stmxcsr",voidd,Int1,nullptr));
+      AllocaInst *und = new AllocaInst(typpe,0, "under",X[0]);
+      AllocaInst *ove = new AllocaInst(typpe,0, "over",X[0]);
+      BitCastInst *newb= new BitCastInst(und,Int1," ",X[0]);
+      CallInst *Oo=CallInst::Create(under_over, newb, "",X[0]);
+      LoadInst *Cund=new LoadInst(und,"",false,X[0]); 
+      Value *one = ConstantInt::get(Type::getInt32Ty(context), 63);
+      Value *two = ConstantInt::get(Type::getInt32Ty(context), 16);
+      BinaryOperator *te1 = BinaryOperator::Create(Instruction::And,Cund,one,"",X[0]);
+      BinaryOperator *te2 = BinaryOperator::Create(Instruction::And,te1,two,"",X[0]);
+      Value *z = ConstantInt::get(Type::getInt32Ty(context), 0);
+      Value *CondI = new ICmpInst(*X[0], ICmpInst::ICMP_SLE, te2,z , "cond");
+      BranchInst::Create (BB3,BB2 ,CondI,X[0]);
+      BitCastInst *newb1= new BitCastInst(ove,Int1," ",BB3);
+      CallInst *Oov=CallInst::Create(under_over, newb1, "",BB3);
+      LoadInst *Cov=new LoadInst(und,"",false,BB3);
+      Value *three = ConstantInt::get(Type::getInt32Ty(context), 8);
+      BinaryOperator *te3 = BinaryOperator::Create(Instruction::And,Cov,one,"",BB3);
+      BinaryOperator *te4 = BinaryOperator::Create(Instruction::And,te3,three,"",BB3);
+      Value *CondIov = new ICmpInst(*BB3, ICmpInst::ICMP_SLE, te3,z , "condov");
+      BranchInst::Create (BB1,BB2 ,CondI,BB3);
       X.clear();
       l.clear();
       }  
