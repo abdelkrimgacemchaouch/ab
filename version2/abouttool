@@ -1,0 +1,30 @@
+1) Introduction
+Our tool is tool transformation witch take code in c language (for moment)
+and translate it in bitecode format and we do some modification to this
+bitecode and at the end we execute it.
+
+2) How it work
+In our tool we need source code (c code for moment) and at the end we will have a executable.
+Code structure:
+When source code is entry in our tool we’ll structure it in module,functions, basics blocks and instructions.
+
+3)Modification:
+In our work we are placed at the level of function, our modification is:
+Create copy for each function, In this copy we try to do the same work of original function, but with different precision of floating point, for that we take the instructions which have the precision wanted to change and we created other with precision choose, if the instruction have not the precision wanted to change we just copy this instruction in the new function.
+
+4)Example
+We’ll take two instruction one in double precision and other in integer precision:
+double R=0; R=R+1; int i=0;
+
+//***********************************************                 //*********************************************************
+%R = alloca double, align 8                                       %a = alloca float, align 4
+store double 0.000000e+00, double* %R, align 8                    store float 0.000000e+00, float* %a, align 4
+%10 = load double, double* %R, align 8                            %”” = load float, float* %a, align 4
+%11 = fadd double %10, 1.000000e-01                               %add = fadd float %10, 1.000000e-01 
+store double %11, double* %R, align 8                             store double %11, float* %a, align 4
+%i= alloca i32,align 4                                            %1= alloca i32,align 4
+store i32 0, i32* %i, align 4                                     store i32 0, i32* %1, align 4
+//***********************************************                 //***********************************************************
+        orginal function                                                        new function
+
+As we note here that the variable a is the float copy of the variable R and we just copy i with out do any think.
